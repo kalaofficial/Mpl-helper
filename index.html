@@ -1,0 +1,68 @@
+<!DOCTYPE html><html>
+<head>
+  <title>MPL Solitaire Helper</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    input, button { margin: 5px 0; padding: 8px; font-size: 16px; }
+    #result { margin-top: 20px; font-weight: bold; color: green; }
+  </style>
+</head>
+<body>
+  <h1>MPL Solitaire Helper</h1>
+  <label>Deck Card (e.g., 2♠, K♥):</label><br>
+  <input type="text" id="deckCard" placeholder="e.g., 2♠"><br><label>Spread Cards (comma-separated, e.g., K♥, 1♣, 3♦, 5♠):</label><br> <input type="text" id="spreadCards" placeholder="e.g., K♥, 1♣, 3♦, 5♠"><br>
+
+<button onclick="suggestMove()">Suggest Next Move</button>
+
+  <div id="result"></div>  <script>
+    function parseCard(card) {
+      const rank = card.slice(0, -1);
+      const suit = card.slice(-1);
+      const isRed = (suit === '♥' || suit === '♦');
+      return { rank, suit, isRed };
+    }
+
+    function rankValue(rank) {
+      if (rank === 'A' || rank === '1') return 1;
+      if (rank === 'J') return 11;
+      if (rank === 'Q') return 12;
+      if (rank === 'K') return 13;
+      return parseInt(rank);
+    }
+
+    function suggestMove() {
+      const deckInput = document.getElementById('deckCard').value.trim();
+      const spreadInput = document.getElementById('spreadCards').value.trim();
+
+      if (!deckInput || !spreadInput) {
+        document.getElementById('result').innerText = 'Please enter both deck and spread cards!';
+        return;
+      }
+
+      const deckCard = parseCard(deckInput);
+      const spreadCards = spreadInput.split(',').map(c => parseCard(c.trim()));
+
+      const possibleMoves = spreadCards.filter(card => {
+        const deckRank = rankValue(deckCard.rank);
+        const cardRank = rankValue(card.rank);
+
+        if (cardRank === deckRank - 1 && deckCard.isRed !== card.isRed) {
+          return true; // normal alternating color + descending
+        }
+
+        if (cardRank === 1 || cardRank === 3) {
+          return true; // special MPL rule: 1 and 3 can be placed regardless
+        }
+
+        return false;
+      });
+
+      if (possibleMoves.length === 0) {
+        document.getElementById('result').innerText = 'No valid moves found.';
+      } else {
+        const moveList = possibleMoves.map(c => c.rank + c.suit).join(', ');
+        document.getElementById('result').innerText = 'You can play: ' + moveList;
+      }
+    }
+  </script></body>
+</html>
